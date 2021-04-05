@@ -28,6 +28,9 @@ const int kMiddleValue = 1000000000;
 enum SwiperLayout { DEFAULT, STACK, TINDER, CUSTOM }
 
 class Swiper extends StatefulWidget {
+  /// Vertical swipes will be from bottom to top instead of top to bottom.
+  final bool reverse;
+
   /// If set true , the pagination will display 'outer' of the 'content' container.
   final bool outer;
 
@@ -116,6 +119,7 @@ class Swiper extends StatefulWidget {
   final PageIndicatorLayout indicatorLayout;
 
   Swiper({
+    this.reverse = false,
     this.itemBuilder,
     this.indicatorLayout: PageIndicatorLayout.NONE,
 
@@ -469,6 +473,7 @@ class _SwiperState extends _SwiperTimerMixin {
 
     if (widget.layout == SwiperLayout.STACK) {
       return _StackSwiper(
+        reverse: widget.reverse,
         loop: widget.loop,
         itemWidth: widget.itemWidth,
         itemHeight: widget.itemHeight,
@@ -658,21 +663,23 @@ abstract class _SubSwiper extends StatefulWidget {
   final double? itemHeight;
   final bool? loop;
   final Axis? scrollDirection;
+  final bool reverse;
 
-  _SubSwiper(
-      {Key? key,
-      this.loop,
-      this.itemHeight,
-      this.itemWidth,
-      this.duration,
-      this.curve,
-      this.itemBuilder,
-      this.controller,
-      this.index,
-      this.itemCount,
-      this.scrollDirection: Axis.horizontal,
-      this.onIndexChanged})
-      : super(key: key);
+  _SubSwiper({
+    Key? key,
+    this.loop,
+    this.itemHeight,
+    this.itemWidth,
+    this.duration,
+    this.curve,
+    this.itemBuilder,
+    this.controller,
+    this.index,
+    this.itemCount,
+    this.scrollDirection: Axis.horizontal,
+    this.onIndexChanged,
+    this.reverse = false,
+  }) : super(key: key);
 
   @override
   State<StatefulWidget> createState();
@@ -736,19 +743,22 @@ class _StackSwiper extends _SubSwiper {
     bool? loop,
     int? itemCount,
     Axis? scrollDirection,
+    bool reverse = false,
   }) : super(
-            loop: loop,
-            key: key,
-            itemWidth: itemWidth,
-            itemHeight: itemHeight,
-            itemBuilder: itemBuilder,
-            curve: curve,
-            duration: duration,
-            controller: controller,
-            index: index,
-            onIndexChanged: onIndexChanged,
-            itemCount: itemCount,
-            scrollDirection: scrollDirection);
+          loop: loop,
+          key: key,
+          itemWidth: itemWidth,
+          itemHeight: itemHeight,
+          itemBuilder: itemBuilder,
+          curve: curve,
+          duration: duration,
+          controller: controller,
+          index: index,
+          onIndexChanged: onIndexChanged,
+          itemCount: itemCount,
+          scrollDirection: scrollDirection,
+          reverse: reverse,
+        );
 
   @override
   State<StatefulWidget> createState() {
@@ -864,6 +874,7 @@ class _StackViewState extends _CustomLayoutStateBase<_StackSwiper> {
       final double space = (_swiperWidth! - widget.itemWidth!) / 2;
       offsets = [-space, -space / 3 * 2, -space / 3, 0.0, _swiperWidth];
     } else {
+      // vertical
       final double space = (_swiperHeight! - widget.itemHeight!) / 2;
       offsets = [-space, -space / 3 * 2, -space / 3, 0.0, _swiperHeight];
     }
@@ -904,14 +915,26 @@ class _StackViewState extends _CustomLayoutStateBase<_StackSwiper> {
         ? Alignment.centerLeft
         : Alignment.topCenter;
 
+    Offset reverseOffset(Offset offset) {
+      return widget.scrollDirection == Axis.horizontal
+          ? Offset(-offset.dx, offset.dy)
+          : Offset(offset.dx, -offset.dy);
+    }
+
+    Alignment reverseAlignment(Alignment alignment) {
+      return widget.scrollDirection == Axis.horizontal
+          ? Alignment.centerRight
+          : Alignment.bottomCenter;
+    }
+
     return Opacity(
       opacity: o,
       child: Transform.translate(
         key: ValueKey<int>(_currentIndex + i),
-        offset: offset,
+        offset: widget.reverse ? reverseOffset(offset) : offset,
         child: Transform.scale(
           scale: s,
-          alignment: alignment,
+          alignment: widget.reverse ? reverseAlignment(alignment) : alignment,
           child: SizedBox(
             width: widget.itemWidth ?? double.infinity,
             height: widget.itemHeight ?? double.infinity,

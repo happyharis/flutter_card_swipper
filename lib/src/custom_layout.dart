@@ -88,7 +88,8 @@ abstract class _CustomLayoutStateBase<T extends _SubSwiper> extends State<T>
   Widget _buildAnimation(BuildContext context, Widget? w) {
     final List<Widget> list = [];
 
-    final double animationValue = _animation.value;
+    final double animationValue =
+        widget.reverse ? 1 - _animation.value : _animation.value;
 
     for (int i = 0; i < _animationCount!; ++i) {
       int realIndex = _currentIndex + i + _startIndex;
@@ -119,7 +120,9 @@ abstract class _CustomLayoutStateBase<T extends _SubSwiper> extends State<T>
       return Container();
     }
     return AnimatedBuilder(
-        animation: _animationController!, builder: _buildAnimation);
+      animation: _animationController!,
+      builder: _buildAnimation,
+    );
   }
 
   late double _currentValue;
@@ -131,9 +134,11 @@ abstract class _CustomLayoutStateBase<T extends _SubSwiper> extends State<T>
     if (_lockScroll) return;
     try {
       _lockScroll = true;
-      await _animationController!.animateTo(position,
-          duration: Duration(milliseconds: widget.duration!),
-          curve: widget.curve!);
+      await _animationController!.animateTo(
+        position,
+        duration: Duration(milliseconds: widget.duration!),
+        curve: widget.curve!,
+      );
       if (nextIndex != null) {
         widget.onIndexChanged!(widget.getCorrectIndex(nextIndex));
       }
@@ -224,13 +229,10 @@ abstract class _CustomLayoutStateBase<T extends _SubSwiper> extends State<T>
 
   void _onPanUpdate(DragUpdateDetails details) {
     if (_lockScroll) return;
-    double value = _currentValue +
-        ((widget.scrollDirection == Axis.horizontal
-                    ? details.globalPosition.dx
-                    : details.globalPosition.dy) -
-                _currentPos) /
-            _swiperWidth! /
-            2;
+    final position = widget.scrollDirection == Axis.horizontal
+        ? details.globalPosition.dx
+        : details.globalPosition.dy;
+    double value = _currentValue + (position - _currentPos) / _swiperWidth! / 2;
     // no loop ?
     if (!widget.loop!) {
       if (_currentIndex >= widget.itemCount! - 1) {

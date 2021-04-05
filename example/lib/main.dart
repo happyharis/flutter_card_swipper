@@ -21,6 +21,7 @@ class MyApp extends StatelessWidget {
       home: MyHomePage(title: 'Flutter Swiper'),
       //home: buildHome(),
       routes: {
+        '/example00': (BuildContext context) => CustomSwipes(),
         '/example01': (BuildContext context) => ExampleHorizontal(),
         '/example02': (BuildContext context) => ExampleVertical(),
         '/example03': (BuildContext context) => ExampleFraction(),
@@ -83,6 +84,7 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: ListView(
         children: render(context, [
+          ['Custom Vertical', 'Custome Vertical Scrolls', '/example00'],
           ['Horizontal', 'Scroll Horizontal', '/example01'],
           ['Vertical', 'Scroll Vertical', '/example02'],
           ['Fraction', 'Fraction style', '/example03'],
@@ -313,6 +315,40 @@ class ExamplePhone extends StatelessWidget {
               ),
               Image.asset('images/3.png', fit: BoxFit.contain)
             ],
+          )
+        ],
+      ),
+    );
+  }
+}
+
+class CustomSwipes extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final height = MediaQuery.of(context).size.height;
+    final width = MediaQuery.of(context).size.width;
+    return Scaffold(
+      body: Column(
+        children: [
+          // VerticalSwiper(),
+          SizedBox(
+            height: (414 / 812) * height,
+            child: Swiper(
+              reverse: true,
+              itemCount: 2,
+              itemWidth: width,
+              itemHeight: 300.0,
+              scrollDirection: Axis.vertical,
+              layout: SwiperLayout.STACK,
+              itemBuilder: (context, index) {
+                return Container(
+                  color: Colors.grey,
+                  child: Center(
+                    child: Text('$index'),
+                  ),
+                );
+              },
+            ),
           )
         ],
       ),
